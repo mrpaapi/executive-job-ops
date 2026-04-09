@@ -4,7 +4,7 @@
 
 Drop your resume in a folder. Paste a job link. Get matched, tracked, and interview-prepped automatically.
 
-Created by [@mrpaapi](https://github.com/mrpaapi) · Built to help people land jobs, not wrestle with tools.
+Created by [@mrpaapi](https://github.com/mrpaapi) - Srinath Sankara· Built to help people land jobs, not wrestle with tools.
 
 ---
 
