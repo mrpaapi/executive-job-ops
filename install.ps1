@@ -1,13 +1,34 @@
 # executive-job-ops Windows Installer
-# by mrpaapi — https://github.com/mrpaapi/executive-job-ops
+# by srinathsankara — https://github.com/srinathsankara/executive-job-ops
 
 $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "╔════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║    executive-job-ops installer     ║" -ForegroundColor Cyan
-Write-Host "║         by mrpaapi                 ║" -ForegroundColor Cyan
+Write-Host "║         by srinathsankara          ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host ""
+
+# Cleanup old artifacts
+Write-Host "Cleaning up old artifacts..." -ForegroundColor Cyan
+if (Test-Path "backend\.venv") {
+    Remove-Item -Recurse -Force "backend\.venv" -ErrorAction SilentlyContinue
+}
+if (Test-Path "frontend\node_modules") {
+    Remove-Item -Recurse -Force "frontend\node_modules" -ErrorAction SilentlyContinue
+}
+Get-ChildItem -Path "backend\app" -Recurse -Directory -Filter "__pycache__" -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+if (Test-Path "frontend\dist") {
+    Remove-Item -Recurse -Force "frontend\dist" -ErrorAction SilentlyContinue
+}
+if (Test-Path "backend\executive_job_ops.db") {
+    Remove-Item -Force "backend\executive_job_ops.db" -ErrorAction SilentlyContinue
+}
+if (Test-Path ".env") {
+    Remove-Item -Force ".env" -ErrorAction SilentlyContinue
+}
+Write-Host "✓ Cleanup complete" -ForegroundColor Green
 Write-Host ""
 
 # Check Python

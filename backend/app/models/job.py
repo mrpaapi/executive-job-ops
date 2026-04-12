@@ -26,6 +26,10 @@ class Job(Base):
     salary_max = Column(Integer, default=0)
     salary_currency = Column(String, default="USD")
     notes = Column(Text, default="")
+    # Extra structured analysis: {grade, dimensions{...}, archetype, why}.
+    # Stored as JSON in a single column so we can evolve fields without
+    # touching the schema each time.
+    analysis_json = Column(Text, default="")
 
     applied_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

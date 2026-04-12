@@ -1,26 +1,29 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getProfiles, getStories, generateStories, createStory, deleteStory } from '../utils/api'
-import { Sparkles, Plus, Trash2, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { useActiveProfile } from '../context/ActiveProfileContext'
+import { Sparkles, Plus, Trash2, Loader2, ChevronDown, ChevronUp, X, BookOpen } from 'lucide-react'
+import LoadingMeme from '../components/LoadingMeme'
+import PageHeader from '../components/PageHeader'
 import toast from 'react-hot-toast'
-import clsx from 'clsx'
 
 function StoryCard({ story, onDelete }) {
   const [open, setOpen] = useState(false)
   const tags = story.tags || []
+
   return (
     <div className="card p-4">
       <div className="flex items-start justify-between gap-2">
-        <button onClick={() => setOpen(v => !v)} className="flex-1 text-left">
+        <button onClick={() => setOpen((value) => !value)} className="flex-1 text-left">
           <p className="text-sm font-semibold text-slate-900">{story.title}</p>
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
-              {tags.map(t => <span key={t} className="badge bg-brand-50 text-brand-700">{t}</span>)}
+              {tags.map((tag) => <span key={tag} className="badge bg-brand-50 text-brand-700">{tag}</span>)}
             </div>
           )}
         </button>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <button onClick={() => setOpen(v => !v)} className="p-1 text-slate-400 hover:text-slate-600">
+          <button onClick={() => setOpen((value) => !value)} className="p-1 text-slate-400 hover:text-slate-600">
             {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
           <button onClick={() => onDelete(story.id)} className="p-1 text-slate-300 hover:text-red-400">
@@ -50,129 +53,113 @@ function StoryCard({ story, onDelete }) {
 
 export default function Prep() {
   const qc = useQueryClient()
-  const [selectedProfile, setSelectedProfile] = useState('')
+  const { activeProfileId, activeProfile, setActiveProfileId } = useActiveProfile()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', situation: '', task: '', action: '', result: '', tags: '' })
 
   const { data: profiles = [] } = useQuery({ queryKey: ['profiles'], queryFn: getProfiles })
   const { data: stories = [], isLoading } = useQuery({
-    queryKey: ['stories', selectedProfile],
-    queryFn: () => getStories(selectedProfile || undefined),
+    queryKey: ['stories', activeProfileId],
+    queryFn: () => getStories(activeProfileId || undefined),
   })
 
   const generateMut = useMutation({
-    mutationFn: () => generateStories(parseInt(selectedProfile)),
+    mutationFn: () => generateStories(Number(activeProfileId)),
     onSuccess: (data) => {
-      toast.success(`Generated ${data.length} STAR stories!`)
-      qc.invalidateQueries({ queryKey: ['stories'] })
+      toast.success(`Generated ${data.length} STAR stories`)
+      qc.invalidateQueries({ queryKey: ['stories', activeProfileId] })
     },
-    onError: () => toast.error('Generation failed. Check your API key.')
+    onError: () => toast.error('Generation failed. Check your API key.'),
   })
 
   const createMut = useMutation({
     mutationFn: () => createStory({
-      profile_id: parseInt(selectedProfile),
+      profile_id: Number(activeProfileId),
       ...form,
-      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+      tags: form.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
     }),
     onSuccess: () => {
       toast.success('Story saved')
-      qc.invalidateQueries({ queryKey: ['stories'] })
+      qc.invalidateQueries({ queryKey: ['stories', activeProfileId] })
       setShowForm(false)
       setForm({ title: '', situation: '', task: '', action: '', result: '', tags: '' })
-    }
+    },
   })
 
   const deleteMut = useMutation({
     mutationFn: deleteStory,
-    onSuccess: () => { toast.success('Deleted'); qc.invalidateQueries({ queryKey: ['stories'] }) }
+    onSuccess: () => {
+      toast.success('Deleted')
+      qc.invalidateQueries({ queryKey: ['stories', activeProfileId] })
+    },
   })
 
   if (profiles.length === 0) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-slate-500">No profiles yet. Go to <strong>Dashboard</strong> and drop a resume first.</p>
-      </div>
-    )
+    return <div className="text-center py-20 text-slate-500">No profiles yet. Go to <strong>Dashboard</strong> and drop a resume first.</div>
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Interview prep</h1>
-        <p className="text-slate-500 text-sm mt-1">STAR story bank — one per profile</p>
-      </div>
+      <PageHeader
+        compact
+        eyebrow="Interview Prep"
+        title="STAR Story Lab"
+        icon={<BookOpen size={16} />}
+        right={
+          <div className="min-w-56">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-1">Profile</label>
+            <select className="input" value={activeProfileId} onChange={(event) => setActiveProfileId(event.target.value)}>
+              {profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}
+            </select>
+          </div>
+        }
+      />
 
-      {/* Profile selector + actions */}
       <div className="flex flex-wrap items-center gap-3">
-        <select value={selectedProfile} onChange={e => setSelectedProfile(e.target.value)} className="input w-auto">
-          <option value="">All profiles</option>
-          {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-
-        {selectedProfile && (
-          <>
-            <button onClick={() => generateMut.mutate()} disabled={generateMut.isPending}
-              className="btn btn-primary">
-              {generateMut.isPending
-                ? <><Loader2 size={14} className="animate-spin" /> Generating…</>
-                : <><Sparkles size={14} /> AI-generate stories</>}
-            </button>
-            <button onClick={() => setShowForm(v => !v)} className="btn btn-secondary">
-              {showForm ? <X size={14} /> : <Plus size={14} />}
-              {showForm ? 'Cancel' : 'Add manually'}
-            </button>
-          </>
-        )}
+        <button onClick={() => generateMut.mutate()} disabled={generateMut.isPending || !activeProfileId} className="btn btn-primary">
+          {generateMut.isPending ? <><Loader2 size={14} className="animate-spin" /> Generating...</> : <><Sparkles size={14} /> AI-generate stories</>}
+        </button>
+        <button onClick={() => setShowForm((value) => !value)} disabled={!activeProfileId} className="btn btn-secondary">
+          {showForm ? <X size={14} /> : <Plus size={14} />}
+          {showForm ? 'Cancel' : `Add for ${activeProfile?.name || 'profile'}`}
+        </button>
       </div>
 
-      {/* Manual add form */}
-      {showForm && selectedProfile && (
+      {showForm && activeProfileId && (
         <div className="card p-6 space-y-4">
           <h2 className="text-sm font-semibold text-slate-800">New STAR story</h2>
           {[
             { key: 'title', label: 'Story title', placeholder: 'e.g. Led SRE team through major outage' },
-            { key: 'situation', label: 'Situation', placeholder: 'Context and background…' },
-            { key: 'task', label: 'Task', placeholder: 'What you were responsible for…' },
-            { key: 'action', label: 'Action', placeholder: 'Specific steps you took…' },
-            { key: 'result', label: 'Result', placeholder: 'Quantified outcome…' },
+            { key: 'situation', label: 'Situation', placeholder: 'Context and background...' },
+            { key: 'task', label: 'Task', placeholder: 'What you were responsible for...' },
+            { key: 'action', label: 'Action', placeholder: 'Specific steps you took...' },
+            { key: 'result', label: 'Result', placeholder: 'Quantified outcome...' },
             { key: 'tags', label: 'Tags (comma separated)', placeholder: 'leadership, incident, scale' },
           ].map(({ key, label, placeholder }) => (
             <div key={key}>
               <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
               {key === 'title' || key === 'tags'
-                ? <input className="input" placeholder={placeholder} value={form[key]}
-                    onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
-                : <textarea className="input min-h-20 resize-y" placeholder={placeholder} value={form[key]}
-                    onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
-              }
+                ? <input className="input" placeholder={placeholder} value={form[key]} onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))} />
+                : <textarea className="input min-h-20 resize-y" placeholder={placeholder} value={form[key]} onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))} />}
             </div>
           ))}
-          <button onClick={() => createMut.mutate()}
-            disabled={createMut.isPending || !form.title}
-            className="btn btn-primary">
+          <button onClick={() => createMut.mutate()} disabled={createMut.isPending || !form.title} className="btn btn-primary">
             {createMut.isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
             Save story
           </button>
         </div>
       )}
 
-      {/* Stories grid */}
       {isLoading ? (
-        <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-slate-400" /></div>
+        <LoadingMeme label="Loading stories" />
       ) : stories.length === 0 ? (
         <div className="text-center py-16 text-slate-400 text-sm space-y-2">
-          <p>No stories yet.</p>
-          {selectedProfile
-            ? <p>Click <strong>AI-generate stories</strong> to create them from your resume automatically.</p>
-            : <p>Select a profile to get started.</p>
-          }
+          <p>No stories for {activeProfile?.name || 'this profile'} yet.</p>
+          <p>Use AI-generate stories to create them from the resume automatically.</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {stories.map(s => (
-            <StoryCard key={s.id} story={s} onDelete={(id) => deleteMut.mutate(id)} />
-          ))}
+          {stories.map((story) => <StoryCard key={story.id} story={story} onDelete={(id) => deleteMut.mutate(id)} />)}
         </div>
       )}
     </div>

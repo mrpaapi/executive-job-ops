@@ -52,4 +52,4 @@ git push origin feature/your-feature-name
 
 ## Questions?
 
-Open an issue or reach out via GitHub: [@mrpaapi](https://github.com/mrpaapi)
+Open an issue or reach out via GitHub: [@srinathsankara](https://github.com/srinathsankara)

@@ -5,20 +5,29 @@ export default {
     extend: {
       colors: {
         brand: {
-          50:  '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
+          50:  '#eff3ff',
+          100: '#dce4fd',
+          200: '#bfcdfb',
+          300: '#93aaf8',
+          400: '#6080f3',
+          500: '#3d5aed',
+          600: '#1428a0',   // Samsung blue
+          700: '#1020820',
+          800: '#0e1a7a',
+          900: '#0b1463',
+          950: '#060b3d',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-      }
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      fontSize: {
+        '2xs': ['10px', { lineHeight: '14px' }],
+      },
+      borderRadius: {
+        '2xl': '18px',
+        '3xl': '24px',
+      },
     }
   },
   plugins: []

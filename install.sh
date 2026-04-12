@@ -9,9 +9,19 @@ NC='\033[0m'
 echo ""
 echo -e "${BLUE}╔════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║    executive-job-ops installer     ║${NC}"
-echo -e "${BLUE}║         by mrpaapi                 ║${NC}"
+echo -e "${BLUE}║         by srinathsankara          ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════╝${NC}"
 echo ""
+
+# Cleanup old artifacts
+echo -e "${BLUE}Cleaning up old artifacts...${NC}"
+rm -rf backend/.venv 2>/dev/null || true
+rm -rf frontend/node_modules 2>/dev/null || true
+find backend/app -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+rm -rf frontend/dist 2>/dev/null || true
+rm -f backend/executive_job_ops.db 2>/dev/null || true
+rm -f .env 2>/dev/null || true
+echo -e "${GREEN}✓ Cleanup complete${NC}"
 
 # Check Python
 if ! command -v python3 &>/dev/null; then

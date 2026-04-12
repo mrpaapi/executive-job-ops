@@ -4,44 +4,503 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #f5f5f7;
+    color: #1d1d1f;
   }
+
+  h1 { @apply text-3xl font-bold tracking-tight text-[#1d1d1f]; }
+  h2 { @apply text-xl  font-semibold tracking-tight text-[#1d1d1f]; }
+  h3 { @apply text-base font-semibold text-[#1d1d1f]; }
 }
 
 @layer components {
+
+  /* ── Primary Button — Samsung-style dark pill ──────────── */
   .btn {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold
+           transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
+           select-none whitespace-nowrap;
+    border-radius: 999px;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700 active:scale-95;
+    @apply btn text-white active:scale-95;
+    background: #1428a0;   /* Samsung blue */
+    box-shadow: 0 2px 8px rgba(20, 40, 160, 0.30);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #1a35c7;
+    box-shadow: 0 4px 16px rgba(20, 40, 160, 0.40);
   }
   .btn-secondary {
-    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 active:scale-95;
+    @apply btn bg-white text-[#1d1d1f] border border-[#d2d2d7] active:scale-95;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: #f5f5f7;
+    border-color: #b0b0b8;
   }
   .btn-danger {
-    @apply btn bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 active:scale-95;
+    @apply btn bg-white text-red-600 border border-red-200 active:scale-95;
   }
+  .btn-danger:hover:not(:disabled) {
+    @apply bg-red-50;
+  }
+
+  /* ── Card ──────────────────────────────────────────────── */
   .card {
-    @apply bg-white rounded-xl border border-slate-200 shadow-sm;
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.02), 0 4px 16px rgba(0,0,0,0.05);
   }
+  .card-hover {
+    @apply card;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card-hover:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.10);
+    transform: translateY(-1px);
+  }
+
+  /* ── Input ─────────────────────────────────────────────── */
   .input {
-    @apply w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white;
+    @apply w-full px-4 py-3 text-sm text-[#1d1d1f] bg-white
+           placeholder:text-[#8e8e93]
+           focus:outline-none transition-all duration-150;
+    border: 1.5px solid #d2d2d7;
+    border-radius: 12px;
   }
+  .input:focus {
+    border-color: #1428a0;
+    box-shadow: 0 0 0 3px rgba(20, 40, 160, 0.10);
+  }
+
+  /* ── Badge ─────────────────────────────────────────────── */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2.5 py-0.5 text-xs font-semibold;
+    border-radius: 999px;
   }
+
+  /* ── Score ring ────────────────────────────────────────── */
   .score-ring {
-    @apply inline-flex items-center justify-center w-12 h-12 rounded-full text-sm font-semibold;
+    @apply inline-flex items-center justify-center w-12 h-12 text-sm font-bold;
+    border-radius: 50%;
+  }
+
+  /* ── Keyboard hint ─────────────────────────────────────── */
+  .kbd {
+    @apply inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 border border-slate-200 rounded;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
+    min-width: 18px;
+  }
+
+  /* ── Focus rings for keyboard nav ───────────────────────── */
+  .btn:focus-visible, .input:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 2px solid #1428a0;
+    outline-offset: 2px;
+  }
+
+  /* ── Reduced motion respect ─────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  /* ── Touch targets (min 44×44px) ────────────────────────── */
+  button, a, input[type="checkbox"], input[type="radio"] {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* ── Hover + active states cleanup ──────────────────────── */
+  button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  button:disabled {
+    @apply cursor-not-allowed opacity-50;
   }
 }
 
-/* Kanban scrollable columns */
+/* ── Page section heading ────────────────────────────────── */
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #1d1d1f;
+  line-height: 1.15;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1d1d1f;
+}
+
+/* ── Kanban ─────────────────────────────────────────────────── */
 .kanban-col {
   @apply flex flex-col gap-3 min-h-32;
-  min-width: 220px;
+  min-width: 232px;
 }
 
-/* Smooth drag hint */
-.job-card-draggable {
-  @apply cursor-grab active:cursor-grabbing;
+/* ── Samsung-style divider ──────────────────────────────────── */
+.divider {
+  border-top: 1px solid #e5e5ea;
+}
+
+/* ── Skeleton shimmer ───────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f2f2f7 25%, #e5e5ea 50%, #f2f2f7 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.8s infinite linear;
+  border-radius: 10px;
+}
+
+/* ── Sidebar active nav pulse ────────────────────────────────── */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+.animate-soft-pulse { animation: soft-pulse 2s ease-in-out infinite; }
+
+/* ─────────────────────────────────────────────────────────────
+   FANCY ADDITIONS — gradients, glass, memes & animated loaders
+   ───────────────────────────────────────────────────────────── */
+
+/* Animated rainbow gradient used for accent borders & logo */
+@keyframes rainbow-pan {
+  0%   { background-position:   0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position:   0% 50%; }
+}
+.bg-rainbow {
+  background: linear-gradient(120deg, #6366f1, #8b5cf6, #ec4899, #f59e0b, #10b981, #3b82f6, #6366f1);
+  background-size: 300% 300%;
+  animation: rainbow-pan 8s ease infinite;
+}
+.text-rainbow {
+  background: linear-gradient(120deg, #6366f1, #ec4899, #f59e0b, #10b981, #3b82f6, #6366f1);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  animation: rainbow-pan 6s ease infinite;
+}
+
+/* Glassmorphism card */
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.12);
+  border-radius: 20px;
+}
+
+/* Gradient primary button alternative */
+.btn-fancy {
+  @apply inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white
+         transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
+         select-none whitespace-nowrap active:scale-95;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #6366f1, #8b5cf6 50%, #ec4899);
+  background-size: 200% 200%;
+  box-shadow: 0 4px 18px rgba(139, 92, 246, 0.35);
+}
+.btn-fancy:hover:not(:disabled) {
+  background-position: 100% 0;
+  box-shadow: 0 6px 22px rgba(236, 72, 153, 0.40);
+  transform: translateY(-1px);
+}
+
+/* Fun wiggle + bounce keyframes for the loading meme */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-6deg) scale(1); }
+  25%       { transform: rotate(6deg)  scale(1.1); }
+  50%       { transform: rotate(-4deg) scale(1); }
+  75%       { transform: rotate(4deg)  scale(1.05); }
+}
+.animate-wiggle { animation: wiggle 1.2s ease-in-out infinite; display: inline-block; }
+
+@keyframes bounce-in {
+  0%   { opacity: 0; transform: translateY(6px) scale(.95); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+.animate-bounce-in { animation: bounce-in .4s ease-out; }
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+.animate-float { animation: float-y 3s ease-in-out infinite; }
+
+/* Gradient progress bar used inside the loading meme */
+@keyframes slide-x {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%);  }
+}
+.meme-progress {
+  position: relative;
+  overflow: hidden;
+  height: 6px;
+  border-radius: 999px;
+  background: #ede9fe;
+}
+.meme-progress::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  width: 25%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6366f1, #ec4899, #f59e0b);
+  animation: slide-x 1.4s cubic-bezier(.4,0,.2,1) infinite;
+}
+
+/* Fancy page title underline */
+.page-title-fancy {
+  position: relative;
+  display: inline-block;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(120deg, #1e1b4b 0%, #4338ca 45%, #ec4899 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+}
+.page-title-fancy::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -6px;
+  width: 42%; height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6366f1, #ec4899, #f59e0b);
+}
+
+/* Confetti-ish sparkle dot for the sidebar logo */
+@keyframes twinkle {
+  0%, 100% { opacity: .25; transform: scale(.9); }
+  50%       { opacity: 1;   transform: scale(1.15); }
+}
+.animate-twinkle { animation: twinkle 2.4s ease-in-out infinite; }
+
+/* ─────────────────────────────────────────────────────────────
+   Page header (PageHeader component) and global vibrant theme
+   ───────────────────────────────────────────────────────────── */
+
+body {
+  /* subtle pastel watercolor wash so cards feel like they sit on a canvas */
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #ede9fe 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, #ffe4e6 0%, transparent 55%),
+    radial-gradient(800px 600px at 50% 110%, #dbeafe 0%, transparent 60%),
+    #f5f5f7;
+  background-attachment: fixed;
+}
+
+.page-header {
+  position: relative;
+  background: linear-gradient(120deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6));
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  border-radius: 22px;
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.6) inset,
+    0 12px 36px rgba(99, 102, 241, 0.08);
+  overflow: hidden;
+}
+.page-header::before {
+  /* a soft glowing strip on the left edge */
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: linear-gradient(180deg, #6366f1, #8b5cf6, #ec4899, #f59e0b);
+}
+.page-header-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6 55%, #ec4899);
+  box-shadow: 0 6px 18px rgba(139, 92, 246, 0.35);
+  flex-shrink: 0;
+}
+
+/* Compact variant — roughly half the vertical footprint of the default header.
+   Used on dense pages like the Dashboard where Mission Control should not
+   dominate the viewport. */
+.page-header--compact {
+  padding: 10px 18px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+}
+.page-header-icon--compact {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+}
+.page-header-icon--compact > svg { width: 16px; height: 16px; }
+.page-title-fancy--compact {
+  font-size: 18px;
+  line-height: 1.15;
+}
+.page-title-fancy--compact::after {
+  width: 32%;
+  height: 2px;
+  bottom: -3px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Sidebar — vibrant variant
+   ───────────────────────────────────────────────────────────── */
+.sidebar {
+  /* Width auto-expands to accommodate the longest profile name. */
+  min-width: 232px;
+  width: max-content;
+  max-width: 320px;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  position: relative;
+}
+.sidebar::after {
+  /* faint gradient seam between sidebar and main */
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; right: -1px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(139,92,246,.45), transparent);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.62);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.sidebar-link:hover {
+  color: white;
+  background: rgba(255,255,255,0.06);
+}
+.sidebar-link.active {
+  color: white;
+  background: linear-gradient(120deg, rgba(99,102,241,0.35), rgba(236,72,153,0.25));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    0 4px 18px rgba(99, 102, 241, 0.30);
+}
+.sidebar-link.active .sidebar-link-icon {
+  color: #fde68a;
+  filter: drop-shadow(0 0 4px rgba(253, 230, 138, 0.6));
+}
+
+/* GitHub footer — high-contrast & centered */
+.sidebar-github {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 16px;
+  margin: 0 12px 12px 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+  border: 1px solid rgba(255,255,255,0.18);
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.sidebar-github:hover {
+  background: linear-gradient(135deg, rgba(99,102,241,0.30), rgba(236,72,153,0.22));
+  border-color: rgba(253, 230, 138, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+}
+.sidebar-github-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: white;
+  color: #1a1a2e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-github-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.01em;
+}
+.sidebar-github-handle {
+  font-size: 10px;
+  color: rgba(255,255,255,0.65);
+  font-weight: 600;
+}
+
+/* Inline GitHub badge for use inside pages */
+.gh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #1a1a2e, #4338ca);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
+  transition: all 0.18s ease;
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.gh-chip:hover {
+  background: linear-gradient(120deg, #4338ca, #ec4899);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.40);
+}
+
+/* Profile button in sidebar */
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.62);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.profile-btn:hover {
+  color: white;
+  background: rgba(255,255,255,0.05);
+}
+.profile-btn.active {
+  color: white;
+  background: linear-gradient(120deg, rgba(16,185,129,0.30), rgba(59,130,246,0.20));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+}
+.profile-btn-name {
+  flex: 1;
+  /* show the FULL profile name — no ellipsis */
+  white-space: nowrap;
 }

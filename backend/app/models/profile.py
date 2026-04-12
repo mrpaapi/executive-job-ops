@@ -15,6 +15,9 @@ class Profile(Base):
     years_experience = Column(Float, default=0)
     summary = Column(Text, default="")
     raw_text = Column(Text, default="")
+    processing_status = Column(String, default="done")
+    processing_error = Column(Text, default="")
+    processing_provider = Column(String, default="")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

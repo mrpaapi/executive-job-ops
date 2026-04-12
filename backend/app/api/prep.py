@@ -2,6 +2,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 from typing import Optional
 
@@ -9,6 +10,7 @@ from app.core.database import get_db
 from app.core.ai_client import chat
 from app.models.star_story import StarStory
 from app.models.profile import Profile
+from app.models.job import Job
 
 router = APIRouter()
 
@@ -115,6 +117,103 @@ Raw resume excerpt: {(profile.raw_text or "")[:3000]}
         return [serialize_story(s) for s in saved]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+
+class StoriesFromJobRequest(BaseModel):
+    job_id: int
+    count: int = 2
+
+
+@router.post("/stories/from-job")
+async def stories_from_job(req: StoriesFromJobRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Auto-accumulate the STAR story bank: generate `count` new stories tailored
+    to a specific job, deduped against existing stories for that profile.
+
+    Triggered from the JobCard once a job has been analysed — over time the
+    story bank grows organically and is already pre-tagged for the kinds of
+    roles the user is actually hunting.
+    """
+    job_result = await db.execute(
+        select(Job).options(selectinload(Job.profile)).where(Job.id == req.job_id)
+    )
+    job = job_result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    profile = job.profile
+    if not profile:
+        raise HTTPException(status_code=404, detail="Job has no profile")
+
+    existing_q = await db.execute(
+        select(StarStory.title).where(StarStory.profile_id == profile.id)
+    )
+    existing_titles = {(t or "").lower().strip() for (t,) in existing_q.all()}
+
+    count = max(1, min(5, int(req.count or 2)))
+    prompt = f"""You are an interview coach. Generate {count} NEW STAR stories the
+candidate can use in interviews for the SPECIFIC role below. Each story must
+draw from real evidence in the resume — do NOT fabricate metrics.
+
+Avoid these story titles (already in the bank):
+{json.dumps(sorted(existing_titles)) if existing_titles else "(none yet)"}
+
+Return ONLY a JSON array:
+[
+  {{
+    "title": "Short, specific story title",
+    "situation": "Real context from resume",
+    "task": "What the candidate owned",
+    "action": "Concrete steps they took",
+    "result": "Quantified outcome",
+    "tags": ["topic1", "topic2"]
+  }}
+]
+
+Job title: {job.title}
+Job company: {job.company}
+Job description (excerpt):
+{(job.description or "")[:2500]}
+
+Candidate: {profile.name}
+Resume excerpt:
+{(profile.raw_text or "")[:2500]}
+"""
+    try:
+        result = await chat([{"role": "user", "content": prompt}], json_mode=True)
+        parsed = json.loads(result)
+        if isinstance(parsed, dict):
+            parsed = parsed.get("stories", [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+
+    saved: list[StarStory] = []
+    for s in parsed[:count]:
+        title = (s.get("title") or "").strip()
+        if not title or title.lower() in existing_titles:
+            continue
+        existing_titles.add(title.lower())
+        # Auto-tag with the job company so users can find stories per target.
+        tags = s.get("tags") or []
+        if job.company and job.company not in tags:
+            tags.append(job.company)
+        story = StarStory(
+            profile_id=profile.id,
+            title=title,
+            situation=s.get("situation", ""),
+            task=s.get("task", ""),
+            action=s.get("action", ""),
+            result=s.get("result", ""),
+            tags=json.dumps(tags),
+        )
+        db.add(story)
+        saved.append(story)
+
+    if saved:
+        await db.commit()
+        for s in saved:
+            await db.refresh(s)
+
+    return {"created": len(saved), "stories": [serialize_story(s) for s in saved]}
+
 
 @router.delete("/stories/{story_id}")
 async def delete_story(story_id: int, db: AsyncSession = Depends(get_db)):
